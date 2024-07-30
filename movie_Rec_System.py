@@ -4,14 +4,12 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 
-
 # Load data
 @st.cache_data
 def load_data():
     movies = pd.read_csv('movies.csv')
     ratings = pd.read_csv('ratings.csv')
     return movies, ratings
-
 
 movies, ratings = load_data()
 
@@ -23,7 +21,6 @@ df = df.explode('genres')
 # Extract unique genres and movie titles
 unique_genres = df['genres'].unique()
 unique_movie_titles = df['title'].unique()
-
 
 # Pre-compute popularity-based recommendations
 @st.cache_data
@@ -41,9 +38,7 @@ def precompute_popularity():
         genre_recommendations[genre] = popular_movies[['Movie Title', 'Num Reviews', 'Average Movie Rating']]
     return genre_recommendations
 
-
 genre_recommendations = precompute_popularity()
-
 
 def popularity_based(genre, min_reviews, num_recommendations):
     if genre in genre_recommendations:
@@ -51,7 +46,6 @@ def popularity_based(genre, min_reviews, num_recommendations):
         popular_movies = popular_movies[popular_movies['Num Reviews'] >= min_reviews]
         return popular_movies.head(num_recommendations)['Movie Title']
     return []
-
 
 # Pre-compute content-based similarity matrix
 @st.cache_data
@@ -67,9 +61,7 @@ def precompute_content_similarity():
     similarity = cosine_similarity(genre_vectors)
     return df_cb, similarity
 
-
 df_cb, similarity = precompute_content_similarity()
-
 
 def content_based(movie, num_rec):
     if movie not in df_cb['title'].values:
@@ -80,7 +72,6 @@ def content_based(movie, num_rec):
     recommended_movies = [df_cb.iloc[i[0]].title for i in movie_list]
     return recommended_movies
 
-
 # Pre-compute collaborative-based user similarity matrix
 @st.cache_data
 def precompute_collaborative_similarity():
@@ -89,9 +80,7 @@ def precompute_collaborative_similarity():
     user_similarity_df = pd.DataFrame(user_similarity, index=df_cbr.index, columns=df_cbr.index)
     return df_cbr, user_similarity_df
 
-
 df_cbr, user_similarity_df = precompute_collaborative_similarity()
-
 
 def collaborative_based(userid, num_rec, similar_users):
     if userid not in df_cbr.index:
@@ -103,7 +92,6 @@ def collaborative_based(userid, num_rec, similar_users):
     recommendations = similar_users_ratings.drop(already_rated).sort_values(ascending=False)
     top_recommendations = recommendations.head(num_rec)
     return top_recommendations.index.tolist()
-
 
 # Streamlit UI
 st.title("Movie Recommendation System")
